@@ -1,0 +1,584 @@
+<%- include('partials/CompareHeader') %>
+<%- include('partials/NavCompare.ejs') %>
+
+<h1>Compare....</h1>
+
+<div class="row">
+
+    <div class="col">
+        <div class="card">
+
+            <table>
+                <thead>
+                    <th>Name</th>
+                    <th><%= userInfo1.result[0].firstName %> <%= userInfo1.result[0].lastName %>%></th>
+                    <th><%= userInfo2.result[0].firstName %> <%= userInfo2.result[0].lastName %></th>
+                </thead>
+                <tr>
+                    <td>Contry</td>
+                    <td><%= userInfo1.result[0].country %></td>
+                    <td><%= userInfo2.result[0].country %></td>
+                </tr>
+                <tr>
+                    <td>Rank</td>
+                    <td><%= userInfo1.result[0].rank %></td>
+                    <td><%= userInfo2.result[0].rank %></td>
+                </tr>
+                <tr>
+                    <td>Rating</td>
+                    <td><%= userInfo1.result[0].rating %></td>
+                    <td><%= userInfo2.result[0].rating %></td>
+                </tr>
+                <tr>
+                    <td>Contribution</td>
+                    <td><%= userInfo1.result[0].contribution %></td>
+                    <td><%= userInfo2.result[0].contribution %></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <div class="col">
+        <div class="card">
+            <table>
+                <thead>
+                    <th>Handle</th>
+                    <th><%= userInfo1.result[0].handle %></th>
+                    <th><%= userInfo2.result[0].handle %></th>
+                </thead>
+                <tr>
+                    <td>Total Contests</td>
+                    <td><%= contestInfo1.result.length %></td>
+                    <td><%= contestInfo2.result.length %></td>
+                </tr>
+                <tr>
+                    <td>Best Rank</td>
+                    <td><%= userInfo1.result[0].maxRank %></td>
+                    <td><%= userInfo2.result[0].maxRank %></td>
+                </tr>
+                <tr>
+                    <td>Best Rating</td>
+                    <td><%= userInfo1.result[0].maxRating %></td>
+                    <td><%= userInfo2.result[0].maxRating %></td>
+                </tr>
+                <tr>
+                    <td>Total Submitions</td>
+                    <td><%= statusInfo1.result.length %></td>
+                    <td><%= statusInfo2.result.length %></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<br>
+
+
+<div class="container">
+
+    <div class="row">
+        <div class="col">
+            <div class="chart" id="cRating">
+                <h3>Contest Ratings</h3>
+                <div class="fulWC">
+                    <canvas id="contestRating"></canvas>
+                </div> 
+            </div>
+        </div>
+    </div>
+
+
+    <div class="row">
+        <div class="col col-lg-6">
+            <div class="chart">
+                <h3>Languages</h3>
+                <canvas id="langPie"></canvas>
+            </div>
+        </div>
+
+        <div class="col col-lg-6">
+            <div class="chart">
+                <h3>Verdicts</h3>
+                <canvas id="verdictsPie"></canvas>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="row">
+        <div class="col col-lg-6">
+            <div class="chart bar1">
+                <h3>Problem Ratings</h3>
+                <div class="bar">
+                    <canvas id="problemRatingBar"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col col-lg-6">
+            <div class="chart bar1">
+                <h3>Problem Indexes</h3>
+                <div class="bar">
+                    <canvas id="problemIndexBar"></canvas>
+                </div>
+               
+            </div>
+        </div>
+
+    </div>
+
+
+</div>
+
+<% var handle1= userInfo1.result[0].handle %>
+<% var handle2= userInfo2.result[0].handle %>
+
+
+<% var nAC1=0,nWA1=0,nOthers1=0 %>
+<% var nAC2=0,nWA2=0,nOthers2=0 %>
+
+<% var contestI1= JSON.stringify(contestInfo1) %>
+<% var contestI2= JSON.stringify(contestInfo2) %>
+
+<% var langFreq1={}; %>
+<% var langFreq2={}; %>
+
+<% var index1={}; %>
+<% var index2={}; %>
+
+<% var problemRating1={}; %>
+<% var problemRating2={}; %>
+
+
+<% statusInfo1.result.forEach(result=>{ %>
+
+    <%    if(langFreq1[result.programmingLanguage]){ %>
+    <%        langFreq1[result.programmingLanguage]++;  %>
+    <%    } else { %>
+    <%        langFreq1[result.programmingLanguage]=1; %>
+    <%    } %>
+
+
+    <%    if(result.verdict=="OK"){ %>
+    <%    nAC1++; %>
+    <%    }else if(result.verdict=="WRONG_ANSWER"){ %>
+    <%    nWA1++; %>
+    <%    }else{ %>
+    <%    nOthers1++; %>
+    <%    } %>
+
+    <%    if(result.verdict=='OK'){ %>
+
+        <%    if(index1[result.problem.index]){ %>
+        <%        index1[result.problem.index]++; %>
+        <%    }else{ %>
+        <%        index1[result.problem.index]=1; %>
+        <%    } %>     
+            
+        <%    if(problemRating1[result.problem.rating]){ %>
+        <%        problemRating1[result.problem.rating]++; %>
+        <%    }else{ %>
+        <%        problemRating1[result.problem.rating]=1; %>
+        <%    } %>
+    
+    <%    } %>
+<% }) %>
+
+
+
+<% statusInfo2.result.forEach(result=>{ %>
+
+    <%    if(langFreq2[result.programmingLanguage]){ %>
+    <%        langFreq2[result.programmingLanguage]++;  %>
+    <%    } else { %>
+    <%        langFreq2[result.programmingLanguage]=1; %>
+    <%    } %>
+
+
+    <%    if(result.verdict=="OK"){ %>
+    <%    nAC2++; %>
+    <%    }else if(result.verdict=="WRONG_ANSWER"){ %>
+    <%    nWA2++; %>
+    <%    }else{ %>
+    <%    nOthers2++; %>
+    <%    } %>
+
+
+    <%    if(result.verdict=='OK'){ %>
+
+        <%    if(index2[result.problem.index]){ %>
+        <%        index2[result.problem.index]++; %>
+        <%    }else{ %>
+        <%        index2[result.problem.index]=1; %>
+        <%    } %>     
+            
+        <%    if(problemRating2[result.problem.rating]){ %>
+        <%        problemRating2[result.problem.rating]++; %>
+        <%    }else{ %>
+        <%        problemRating2[result.problem.rating]=1; %>
+        <%    } %>
+    
+    <%    } %>
+<% }) %>
+
+<% langFreq1=JSON.stringify(langFreq1) %>
+<% langFreq2=JSON.stringify(langFreq2) %>
+
+<% index1=JSON.stringify(index1) %>
+<% index2=JSON.stringify(index2) %>
+<% problemRating1=JSON.stringify(problemRating1) %>
+<% problemRating2=JSON.stringify(problemRating2) %>
+
+
+<script>
+
+    var handle1='<%-handle1%>';
+    var handle2='<%-handle2%>';
+
+
+    // Data from server to JS variable
+    var contestI1='<%-contestI1 %>';
+    contestI1=JSON.parse(contestI1);
+    var contestI2='<%-contestI2 %>';
+    contestI2=JSON.parse(contestI2);
+
+    var Ratings1=[],Label1=[];
+    var Ratings2=[],Label2=[];
+
+    for(var i=0;i<contestI1.result.length;i++){
+        Ratings1.push(contestI1.result[i].newRating);
+        Label1.push(i+1);
+    }
+    for(var i=0;i<contestI2.result.length;i++){
+        Ratings2.push(contestI2.result[i].newRating);
+        Label2.push(i+1);
+    }
+
+    
+
+    console.log(Ratings1);
+    console.log(Label1);
+    console.log(Ratings2);
+    console.log(Label2);
+    // Ploting graph using chart.js for Ratings
+    var ctx = document.getElementById('contestRating').getContext('2d');
+    var myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: Label2,
+            datasets: [{
+                label: handle1,
+                data: Ratings1,
+                backgroundColor: "red",
+                borderColor: "black",
+                borderWidth: 2
+            },{
+                label: handle2,
+                data: Ratings2,
+                backgroundColor: "blue",
+                borderColor: "black",
+                borderWidth: 2
+            }]
+        },
+        options: {
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Languages
+    var LangData1='<%-langFreq1 %>';
+    LangData1=JSON.parse(LangData1);
+    var LangData2='<%-langFreq2 %>';
+    LangData2=JSON.parse(LangData2);
+
+    var Langs1=[],LangFreq1=[];
+    var Langs2=[],LangFreq2=[];
+
+    Object.entries(LangData1).forEach(item=>{
+        Langs1.push(item[0]);
+        LangFreq1.push(item[1]);
+    })
+
+    Object.entries(LangData2).forEach(item=>{
+        Langs2.push(item[0]);
+        LangFreq2.push(item[1]);
+    })
+
+    var ctx = document.getElementById('langPie').getContext('2d');
+    var myChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: Langs1,
+            datasets: [{
+                label: handle1,
+                data: LangFreq1,
+                backgroundColor: 'red',
+                borderColor: 'black',
+                borderWidth: 0.5
+            },{
+                label: handle2,
+                data: LangFreq2,
+                backgroundColor: 'blue',
+                borderColor: 'black',
+                borderWidth: 0.5
+            }]
+        },
+        options: {
+            
+        }
+    });
+
+    // Verdicts
+    nAC1='<%-nAC1%>';
+    nAC2='<%-nAC2%>';
+    nWA1='<%-nWA1%>';
+    nWA2='<%-nWA2%>';
+    nOthers1='<%-nOthers1%>';
+    nOthers2='<%-nOthers2%>';
+
+    var ctx = document.getElementById('verdictsPie').getContext('2d');
+    var myChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['AC','WA','Others'],
+            datasets: [{
+                label: handle1,
+                data: [nAC1,nWA1,nOthers1],
+                backgroundColor: 'red',
+                borderColor: 'black',
+                borderWidth: 0.5
+            },{
+                label: handle2,
+                data: [nAC2,nWA2,nOthers2],
+                backgroundColor: 'blue',
+                borderColor: 'black',
+                borderWidth: 0.5
+            }]
+        },
+        options: {
+            
+        }
+    });
+
+    // Index 
+    // Passing index data to script JSON
+    var Index1='<%-index1 %>';
+    Index1=JSON.parse(Index1);
+    var Index2='<%-index2 %>';
+    Index2=JSON.parse(Index2);
+
+    // Sorting JSON
+    Index1 = Object.keys(Index1).sort().reduce(
+        (obj, key) => { 
+            obj[key] = Index1[key]; 
+            return obj;
+        }, 
+        {}
+    );
+    Index2 = Object.keys(Index2).sort().reduce(
+        (obj, key) => { 
+            obj[key] = Index2[key]; 
+            return obj;
+        }, 
+        {}
+    );
+
+    // Data from JSON to data arrays
+    var indexs1=[], indexFreq1=[];
+    var indexs2=[], indexFreq2=[];
+
+    Object.entries(Index1).forEach(item=>{
+        indexs1.push(item[0]);
+        indexFreq1.push(item[1]);
+    })
+    Object.entries(Index2).forEach(item=>{
+        indexs2.push(item[0]);
+        indexFreq2.push(item[1]);
+    })
+
+    var index=[],indexData1=[],indexData2=[];
+    var l1=indexs1.length,
+        l2=indexs2.length;
+    
+    var idx1=0,idx2=0;
+
+    while(idx1<l1 && idx2<l2){
+        if(indexs1[idx1]<indexs2[idx2]){
+            index.push(indexs1[idx1]);
+            indexData1.push(indexFreq1[idx1]);
+            indexData2.push(0);
+            idx1++;
+        }else if(indexs1[idx1]>indexs2[idx2]){
+            index.push(indexs2[idx2]);
+            indexData2.push(indexFreq2[idx2]);
+            indexData1.push(0);
+            idx2++;
+        }else{
+            index.push(indexs1[idx1]);
+            indexData1.push(indexFreq1[idx1]);
+            indexData2.push(indexFreq2[idx2]);
+            idx1++;
+            idx2++;
+        }
+    }
+
+    while(idx1<l1){
+        index.push(indexs1[idx1]);
+        indexData1.push(indexFreq1[idx1]);
+        indexData2.push(0);
+        idx1++;
+    }
+
+    while(idx2<l2){
+        index.push(indexs2[idx2]);
+        indexData2.push(indexFreq2[idx2]);
+        indexData1.push(0);
+        idx2++;
+    }
+
+    var ctx = document.getElementById('problemIndexBar').getContext('2d');
+    var myChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: index,
+            datasets: [{
+                label: handle1,
+                data: indexData1,
+                backgroundColor: "red",
+                borderColor: "black",
+                borderWidth: 2
+            },{
+                label: handle2,
+                data: indexData2,
+                backgroundColor: "blue",
+                borderColor: "black",
+                borderWidth: 2
+            }]
+        },
+        options: {
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Problem Ratings......
+    var problemRating1='<%-problemRating1 %>';
+    problemRating1=JSON.parse(problemRating1);
+
+    var problemRating2='<%-problemRating2 %>';
+    problemRating2=JSON.parse(problemRating2);
+
+    //Sorting
+    problemRating1 = Object.keys(problemRating1).sort().reduce(
+        (obj, key) => { 
+            obj[key] = problemRating1[key]; 
+            return obj;
+        }, 
+        {}
+    );
+    problemRating2 = Object.keys(problemRating2).sort().reduce(
+        (obj, key) => { 
+            obj[key] = problemRating2[key]; 
+            return obj;
+        }, 
+        {}
+    );
+
+    var pRatings1=[],pRatingFreq1=[];
+    var pRatings2=[],pRatingFreq2=[];
+
+    Object.entries(problemRating1).forEach(item=>{
+        pRatings1.push(item[0]);
+        pRatingFreq1.push(item[1]);
+    })
+    Object.entries(problemRating2).forEach(item=>{
+        pRatings2.push(item[0]);
+        pRatingFreq2.push(item[1]);
+    })
+
+    var PRating=[],pRatingData1=[],pRatingData2=[];
+    var l1=pRatings1.length,
+        l2=pRatings2.length;
+    
+    var idx1=0,idx2=0;
+
+    while(idx1<l1 && idx2<l2){
+        if(pRatings1[idx1]<pRatings2[idx2]){
+            PRating.push(pRatings1[idx1]);
+            pRatingData1.push(pRatingFreq1[idx1]);
+            pRatingData2.push(0);
+            idx1++;
+        }else if(pRatings1[idx1]>pRatings2[idx2]){
+            PRating.push(pRatings2[idx2]);
+            pRatingData2.push(pRatingFreq2[idx2]);
+            pRatingData1.push(0);
+            idx2++;
+        }else{
+            PRating.push(pRatings1[idx1]);
+            pRatingData1.push(pRatingFreq1[idx1]);
+            pRatingData2.push(pRatingFreq2[idx2]);
+            idx1++;
+            idx2++;
+        }
+    }
+
+    while(idx1<l1){
+        PRating.push(pRatings1[idx1]);
+        pRatingData1.push(pRatingFreq1[idx1]);
+        pRatingData2.push(0);
+        idx1++;
+    }
+
+    while(idx2<l2){
+        PRating.push(pRatings2[idx2]);
+        pRatingData2.push(pRatingFreq2[idx2]);
+        pRatingData1.push(0);
+        idx2++;
+    }
+
+    var ctx = document.getElementById('problemRatingBar').getContext('2d');
+    var myChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: PRating,
+            datasets: [{
+                label: handle1,
+                data: pRatingData1,
+                backgroundColor: "red",
+                borderColor: "black",
+                borderWidth: 2
+            },{
+                label: handle2,
+                data: pRatingData2,
+                backgroundColor: "blue",
+                borderColor: "black",
+                borderWidth: 2
+            }]
+        },
+        options: {
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+
+
+</script>
+
+
+
+<%- include('partials/footer') %>

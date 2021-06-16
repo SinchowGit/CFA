@@ -1,0 +1,446 @@
+
+<%- include('partials/header') %>
+
+<%- include("partials/NavProfile.ejs") %>
+
+<h1>Profile</h1>
+
+<div class="container card">
+
+    <table>
+        <tr>
+            <td rowspan="4">
+                <img src=" <%= userInfo.result[0].avatar %> " alt="ProfilePic">
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <p>Name: <%= userInfo.result[0].firstName %> <%= userInfo.result[0].lastName %>  </p>
+            </td>
+            <td>
+                <p>Country: <%= userInfo.result[0].country %> </p>
+            </td>
+            <td>
+                <p>Total Contest: <%= contestInfo.result.length %> </p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <p>Rank: <%= userInfo.result[0].rank %> </p>
+            </td>
+            <td>
+                <p>Country: <%= userInfo.result[0].country %> </p>
+            </td>
+            <td>
+                <p>Best Rank: <%= userInfo.result[0].maxRank %></p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <p>Rating: <%= userInfo.result[0].rating %> </p>
+            </td>
+            <td>
+                <p>Total Submitions: <%= statusInfo.result.length %> </p>
+            </td>
+            <td>
+                <p>Best Rating: <%= userInfo.result[0].maxRating %> </p>
+            </td>
+        </tr>
+    </table>
+
+
+</div>
+
+<br>
+
+<!-- ................................................................................................................................... -->
+
+<div class="container">
+    <div class="row">
+        <div class="col">
+            <div class="chart" id="cRating">
+                <h3>Contest Ratings</h3>
+                <div class="fulWC">
+                    <canvas id="contestRating"></canvas>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col col-lg-6">
+            <div class="chart">
+                <h3>Languages</h3>
+                <canvas id="langPie"></canvas>
+            </div>
+        </div>
+
+        <div class="col col-lg-6">
+            <div class="chart">
+                <h3>Verdicts</h3>
+                <canvas id="verdictsPie"></canvas>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="row">
+        <div class="col">
+            <div class="chart" id="tags">
+                <h3>Tags</h3>
+                <canvas id="tagsPie"></canvas>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="row">
+        <div class="col col-lg-6">
+            <div class="chart bar1">
+                <h3>Problem Ratings</h3>
+                <div class="bar">
+                    <canvas id="problemRatingBar"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col col-lg-6">
+            <div class="chart bar1">
+                <h3>Problem Indexes</h3>
+                <div class="bar">
+                    <canvas id="problemIndexBar"></canvas>
+                </div>
+               
+            </div>
+        </div>
+
+    </div>
+
+
+</div>
+
+<!-- ...................................................................................................................................... -->
+
+<% var data1= JSON.stringify(contestInfo) %>
+
+<% var langFreq={}; %>
+<% var verdict={}; %>
+<% var index={}; %>
+<% var problemRating={}; %>
+<% var tags={}; %>
+
+
+<% statusInfo.result.forEach(result=>{ %>
+
+    <%    if(langFreq[result.programmingLanguage]){ %>
+    <%        langFreq[result.programmingLanguage]++;  %>
+    <%    } else { %>
+    <%        langFreq[result.programmingLanguage]=1; %>
+    <%    } %>
+
+    <%    if(verdict[result.verdict]){ %>
+    <%        verdict[result.verdict]++;  %>
+    <%    } else { %>
+    <%        verdict[result.verdict]=1; %>
+    <%    } %>
+
+
+    <%    if(result.verdict=='OK'){ %>
+
+        <%    if(index[result.problem.index]){ %>
+        <%        index[result.problem.index]++; %>
+        <%    }else{ %>
+        <%        index[result.problem.index]=1; %>
+        <%    } %>     
+            
+        <%    if(problemRating[result.problem.rating]){ %>
+        <%        problemRating[result.problem.rating]++; %>
+        <%    }else{ %>
+        <%        problemRating[result.problem.rating]=1; %>
+        <%    } %>
+    
+    
+        <%    result.problem.tags.forEach(tag=>{ %>
+        <%        if(tags[tag]){ %>
+        <%            tags[tag]++; %>
+        <%        }else{  %>
+        <%            tags[tag]=1; %>
+        <%        } %>
+        <%    }) %>
+    
+    <%    } %>
+<% }) %>
+
+
+
+
+<% langFreq=JSON.stringify(langFreq) %>
+<% verdict=JSON.stringify(verdict) %>
+
+
+<% index=JSON.stringify(index) %>
+<% problemRating=JSON.stringify(problemRating) %>
+<% tags=JSON.stringify(tags) %>
+
+
+<script>//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    // Data from server to JS variable
+    var contestI='<%-data1 %>';
+    contestI=JSON.parse(contestI);
+
+    var Ratings=[],Label=[];
+
+    for(var i=0;i<contestI.result.length;i++){
+        Ratings.push(contestI.result[i].newRating);
+        Label.push(i+1);
+    }
+
+    // Ploting graph using chart.js for Ratings
+    var ctx = document.getElementById('contestRating').getContext('2d');
+    var myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: Label,
+            datasets: [{
+                label: 'Contest Ratings',
+                data: Ratings,
+                backgroundColor: "red",
+                borderColor: "black",
+                borderWidth: 2
+            }]
+        },
+        options: {
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // LanguageFreq
+    var LangData='<%-langFreq %>';
+    LangData=JSON.parse(LangData);
+
+    var Langs=[];
+    var LangFreq=[];
+
+    Object.entries(LangData).forEach(item=>{
+        Langs.push(item[0]);
+        LangFreq.push(item[1]);
+    })
+
+    // console.log(Langs);
+    // console.log(LangFreq);
+
+    // Ploting pie-chart for Language
+    var ctx = document.getElementById('langPie').getContext('2d');
+    var myChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: Langs,
+            datasets: [{
+                label: '# of Votes',
+                data: LangFreq,
+                backgroundColor: [
+                'rgba(255, 99, 132, 0.2)',
+                'rgba(54, 162, 235, 0.2)',
+                'rgba(255, 206, 86, 0.2)',
+                'rgba(75, 192, 192, 0.2)',
+                'rgba(153, 102, 255, 0.2)',
+                'rgba(255, 159, 64, 0.2)'
+            ],
+                borderColor: 'black',
+                borderWidth: 0.5
+            }]
+        },
+        options: {
+            
+        }
+    });
+
+
+    // Verdict data
+    var verdict='<%-verdict %>';
+    verdict=JSON.parse(verdict);
+    // console.log(verdict);
+
+    var verdicts=[];
+    var verdictFreq=[];
+
+    Object.entries(verdict).forEach(item=>{
+        verdicts.push(item[0]);
+        verdictFreq.push(item[1]);
+    })
+
+    // Ploting pie chart for verdicts
+    var ctx = document.getElementById('verdictsPie').getContext('2d');
+    var myChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: verdicts,
+            datasets: [{
+                label: '# of Votes',
+                data: verdictFreq,
+                backgroundColor: [
+                'rgba(255, 99, 132, 0.2)',
+                'rgba(54, 162, 235, 0.2)',
+                'rgba(255, 206, 86, 0.2)',
+                'rgba(75, 192, 192, 0.2)',
+                'rgba(153, 102, 255, 0.2)',
+                'rgba(255, 159, 64, 0.2)'
+            ],
+                borderColor: 'black',
+                borderWidth: 0.5
+            }]
+        },
+        options: {
+            
+        }
+    });
+
+
+
+    // Problem Index
+    var Index='<%-index %>';
+    Index=JSON.parse(Index);
+
+    console.log(Index);
+
+    Index = Object.keys(Index).sort().reduce(
+        (obj, key) => { 
+            obj[key] = Index[key]; 
+            return obj;
+        }, 
+        {}
+    );
+
+    var indexs=[];
+    var indexFreq=[];
+
+    Object.entries(Index).forEach(item=>{
+        indexs.push(item[0]);
+        indexFreq.push(item[1]);
+    })
+
+    console.log(indexs);
+    console.log(indexFreq);
+
+    // Bar chart for Index
+    var ctx = document.getElementById('problemIndexBar').getContext('2d');
+    var myChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: indexs,
+            datasets: [{
+                label: 'Indexes',
+                data: indexFreq,
+                backgroundColor: "red",
+                borderColor: "black",
+                borderWidth: 2
+            }]
+        },
+        options: {
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+
+    // Problem Rating
+    var problemRating='<%-problemRating %>';
+    problemRating=JSON.parse(problemRating);
+
+    problemRating = Object.keys(problemRating).sort().reduce(
+        (obj, key) => { 
+            obj[key] = problemRating[key]; 
+            return obj;
+        }, 
+        {}
+    );
+
+
+    var pRatings=[];
+    var pRatingFreq=[];
+
+    Object.entries(problemRating).forEach(item=>{
+        pRatings.push(item[0]);
+        pRatingFreq.push(item[1]);
+    })
+
+    // Bar chart for Problem Rating
+    var ctx = document.getElementById('problemRatingBar').getContext('2d');
+    var myChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: pRatings,
+            datasets: [{
+                label: 'Problem Ratings',
+                data: pRatingFreq,
+                backgroundColor: "red",
+                borderColor: "black",
+                borderWidth: 2
+            }]
+        },
+        options: {
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Tags data
+
+    var tags='<%-tags %>';
+    tags=JSON.parse(tags);
+
+    var tag=[];
+    var tagFreq=[];
+
+    Object.entries(tags).forEach(item=>{
+        tag.push(item[0]);
+        tagFreq.push(item[1]);
+    })
+
+    // Tags Pie
+    var ctx = document.getElementById('tagsPie').getContext('2d');
+    var myChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: tag,
+            datasets: [{
+                label: '# of Votes',
+                data: tagFreq,
+                backgroundColor: [
+                'rgba(255, 99, 132, 0.2)',
+                'rgba(54, 162, 235, 0.2)',
+                'rgba(255, 206, 86, 0.2)',
+                'rgba(75, 192, 192, 0.2)',
+                'rgba(153, 102, 255, 0.2)',
+                'rgba(255, 159, 64, 0.2)'
+            ],
+                borderColor: 'black',
+                borderWidth: 0.5
+            }]
+        },
+        options: {
+            
+        }
+    });
+
+       
+</script>
+
+
+
+<%- include('partials/footer') %>
